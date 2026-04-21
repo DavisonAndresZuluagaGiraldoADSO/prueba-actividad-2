@@ -2,35 +2,35 @@ name: Control de Calidad
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   quality:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    
-    - name: Usar Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20.x
-        cache: 'npm'
-    
-    - name: Instalar dependencias
-      run: npm ci
-    
-    - name: Análisis de cobertura de tipos
-      run: npm run check
-      continue-on-error: true
-    
-    - name: Verificar vulnerabilidades
-      run: npm audit --audit-level=moderate
-      continue-on-error: true
-    
-    - name: Compilar para verificar errores
-      run: npm run build
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Usar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Analisis de cobertura de tipos
+        run: npm run check
+        continue-on-error: true
+
+      - name: Verificar vulnerabilidades
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Compilar para verificar errores
+        run: npm run build

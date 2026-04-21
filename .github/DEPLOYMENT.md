@@ -1,91 +1,65 @@
-# Configuración de Despliegue Continuo (CI/CD)
+# Configuracion de Despliegue Continuo (CI/CD)
 
-Este proyecto está configurado con GitHub Actions para automatizar integración continua y despliegue continuo.
+Este proyecto usa GitHub Actions para automatizar la validacion y el despliegue en GitHub Pages.
 
-## Flujos de Trabajo
+## Flujos de trabajo
 
-### 1. **CI - Integración Continua** (`ci.yml`)
-Se ejecuta en cada push y pull request a `main` o `develop`.
+### 1. CI - Integracion Continua (`ci.yml`)
+Se ejecuta en cada `push` y `pull_request` hacia `main` o `develop`.
 
-**Acciones:**
-- ✅ Instala dependencias
-- ✅ Ejecuta verificación de tipos (TypeScript)
-- ✅ Ejecuta linting con svelte-check
-- ✅ Construye la aplicación
-- ✅ Sube artefactos de build (retenidos 5 días)
+Acciones:
+- Instala dependencias
+- Ejecuta `npm run check`
+- Ejecuta `npm run build`
+- Publica el artefacto `build/`
 
-**Soporta:** Node.js 18.x y 20.x
+### 2. CD - Despliegue Continuo (`cd.yml`)
+Se ejecuta en `main` y tambien cuando el workflow de CI termina correctamente sobre `main`.
 
-### 2. **CD - Despliegue Continuo** (`cd.yml`)
-Se ejecuta cuando el CI pasa exitosamente en la rama `main`.
+Acciones:
+- Instala dependencias
+- Construye la aplicacion estatica
+- Publica `build/` en GitHub Pages
 
-**Acciones:**
-- 🚀 Construye la aplicación para producción
-- 🌐 Despliega automáticamente a GitHub Pages
-- 📦 Crea releases automáticas etiquetadas
+### 3. Control de Calidad (`quality.yml`)
+Se ejecuta en cada cambio para monitorear salud tecnica.
 
-### 3. **Control de Calidad** (`quality.yml`)
-Se ejecuta en cada cambio para monitorear la calidad.
+Acciones:
+- Ejecuta `npm run check`
+- Ejecuta `npm audit`
+- Ejecuta `npm run build`
 
-**Acciones:**
-- 🔍 Análisis de cobertura de tipos
-- 🔐 Verifica vulnerabilidades con `npm audit`
-- 🔨 Compila para verificar errores de compilación
-
-## Configuración Requerida
+## Configuracion requerida en GitHub
 
 ### GitHub Pages
-1. Ve a **Settings** del repositorio
-2. Selecciona **Pages**
-3. Elige **Deploy from a branch**
-4. Selecciona `gh-pages` como rama
-5. Guarda los cambios
+1. Ve a `Settings`
+2. Entra en `Pages`
+3. Selecciona `GitHub Actions` como source
+4. Guarda los cambios
 
-### Dominio Personalizado (Opcional)
-Si tienes un dominio personalizado, descomentar la línea `cname:` en `cd.yml` y agregar tu dominio.
+### Dominio personalizado
+Si necesitas uno, agrega `static/CNAME` antes del build.
 
-## Variables de Entorno
+## Verificacion local
 
-Agregar en **Settings > Secrets and variables > Actions** si necesitas:
-- `DEPLOYMENT_TOKEN`: Token personalizado de despliegue
-- `CUSTOM_DOMAIN`: Dominio personalizado para CNAME
-
-## Flujo de Trabajo
-
+```bash
+npm install
+npm run check
+npm run build
 ```
-Push a main/develop
-       ↓
-   CI - Linting, Build, Tests
-       ↓
-¿CI Exitoso?
-   ├→ NO: Notificación de error
-   └→ SI: Continuar
-       ↓
-(Solo en main) CD - Despliegue automático
-       ↓
-Aplicación en vivo en GitHub Pages
-```
-
-## Monitoreo
-
-- Visualiza el estado en **Actions** tab del repositorio
-- Recibe notificaciones en email si los workflows fallan
-- Cada release aparece en la pestaña **Releases**
 
 ## Troubleshooting
 
 ### El build falla
+Ejecuta:
+
 ```bash
-# Verificar localmente
-npm ci
+npm install
 npm run check
 npm run build
 ```
 
 ### GitHub Pages no se actualiza
-- Verifica que la rama `gh-pages` existe
-- Espera 1-2 minutos después del despliegue
-- Limpia el caché del navegador
-
-### Desactivar workflows
-Ir a **Settings > Actions > General** y cambiar permisos
+- Verifica que Pages use `GitHub Actions`
+- Espera 1 o 2 minutos despues del despliegue
+- Limpia cache del navegador

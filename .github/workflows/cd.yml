@@ -1,37 +1,52 @@
 name: CD - Despliegue Continuo
 
 on:
-  push:
-    branches: [ main ]
   workflow_run:
-    workflows: ["CI - Integración Continua"]
+    workflows: ["CI - Integracion Continua"]
     types: [completed]
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
-    # Solo desplegar si el CI pasó exitosamente
-    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
-    
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Usar Node.js 20.x
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20.x
-        cache: 'npm'
-    
-    - name: Instalar dependencias
-      run: npm ci
-    
-    - name: Construir aplicación para producción
-      run: npm run build
-    
-    - name: Desplegar a GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./build
+      - uses: actions/checkout@v4
+
+      - name: Usar Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Construir aplicacion para produccion
+        run: npm run build
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Subir artefacto
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./build
+
+      - name: Desplegar a GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
