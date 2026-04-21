@@ -1,0 +1,40 @@
+name: CI - Integración Continua
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Usar Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Instalar dependencias
+      run: npm ci
+    
+    - name: Ejecutar verificación de tipos y linting
+      run: npm run check
+    
+    - name: Construir aplicación
+      run: npm run build
+    
+    - name: Subir artefactos de build
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-${{ matrix.node-version }}
+        path: build/
+        retention-days: 5
